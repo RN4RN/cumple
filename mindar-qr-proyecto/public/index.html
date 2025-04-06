@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Realidad Aumentada con MindAR y A-Frame</title>
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <!-- MindAR para A-Frame -->
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #ar-scene {
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+    }
+  </style>
+</head>
+<body>
+  <a-scene
+    mindar-image="imageTargetSrc: targets.mind;"
+    embedded
+    color-space="sRGB"
+    renderer="colorManagement: true, physicallyCorrectLights"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: true"
+    id="ar-scene"
+  >
+    <a-assets>
+      <a-asset-item id="modelo-3d" src="./modelos/Correctshark002.glb"></a-asset-item>
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-gltf-model src="#modelo-3d" position="0 0 0" scale="0.2 0.2 0.2"></a-gltf-model>
+    </a-entity>
+  </a-scene>
+</body>
+</html>
