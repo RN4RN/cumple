@@ -18,7 +18,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: rgba(0,0,0,0);
+      background: rgba(255, 255, 255, 0);
     }
 
     #ar-scene {
@@ -80,7 +80,7 @@
   Powered by RNcorp
 </div>
 
-<!-- Escena AR optimizada -->
+<!-- Escena AR -->
 <a-scene
   id="ar-scene"
   mindar-image="imageTargetSrc: targets.mind;"
@@ -94,23 +94,19 @@
     <a-asset-item id="modelo-3d" src="./modelos/Correctshark002.glb"></a-asset-item>
   </a-assets>
 
-  <!-- Cámara con soporte para gestos y mouse -->
+  <!-- Cámara con soporte para gestos y ratón -->
   <a-camera position="0 0 0" look-controls="enabled: false" gesture-detector>
-    <a-entity 
-      cursor="rayOrigin: mouse" 
-      raycaster="objects: .interactable;" 
-      super-hands
-    ></a-entity>
+    <a-entity cursor="rayOrigin: mouse" raycaster="objects: .interactable;" super-hands></a-entity>
   </a-camera>
 
   <!-- Target detectado -->
   <a-entity mindar-image-target="targetIndex: 0">
 
-    <!-- Modelo 3D Tiburón -->
+    <!-- Modelo 3D centrado -->
     <a-gltf-model 
       src="#modelo-3d" 
-      position="0 0 -0.5" 
-      scale="0.2 0.2 0.2" 
+      position="0 0 0" 
+      scale="0.1 0.1 0.1" 
       class="interactable"
       grabbable
       stretchable
@@ -118,9 +114,9 @@
       rotatable
     ></a-gltf-model>
 
-    <!-- Texto descriptivo encima del modelo -->
+    <!-- Texto descriptivo -->
     <a-entity 
-      position="0 0.4 0"
+      position="0 0.3 0"
       text="value: 🦈 Tiburón\nDepredador marino de gran tamaño y poderoso instinto.; 
             align: center; 
             width: 2; 
@@ -130,7 +126,7 @@
   </a-entity>
 </a-scene>
 
-<!-- Script para manejar carga -->
+<!-- Script para ocultar la pantalla de carga -->
 <script>
   const scene = document.getElementById('ar-scene');
   scene.addEventListener('loaded', () => {
