@@ -2,13 +2,14 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Realidad Aumentada con MindAR y A-Frame</title>
+  <title>AR Tiburón — Powered by TuMarca</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <!-- A-Frame -->
+  <!-- Librerías A-Frame, MindAR, Super-Hands y Gesture Detector -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
-  <!-- MindAR para A-Frame -->
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-super-hands-component@4.0.5/dist/aframe-super-hands-component.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-gesture-detector@3.3.0/dist/aframe-gesture-detector.min.js"></script>
 
   <style>
     html, body {
@@ -17,73 +18,120 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: black;
+      background: rgba(0,0,0,0);
     }
 
     #ar-scene {
-      width: 100%;
-      height: 100%;
       position: fixed;
       top: 0;
       left: 0;
-      z-index: 1;
-    }
-
-    canvas {
-      width: 100% !important;
-      height: 100% !important;
+      width: 100%;
+      height: 100%;
       display: block;
     }
 
-    video {
-      filter: none !important;
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgb(0,0,0);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      font-family: sans-serif;
+      font-size: 1.5em;
+    }
+
+    /* Marca de agua con logo + texto */
+    #watermark {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 6px 10px;
+      border-radius: 10px;
+      z-index: 9999;
+      color: white;
+      font-family: sans-serif;
+      font-size: 0.9em;
+    }
+
+    #watermark img {
+      height: 30px;
+      opacity: 0.7;
     }
   </style>
 </head>
 <body>
-  <a-scene
-    mindar-image="imageTargetSrc: targets.mind; autoStart: true;"
-    embedded
-    color-space="sRGB"
-    renderer="antialias: true; alpha: true; colorManagement: true; physicallyCorrectLights: true;"
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: true"
-    id="ar-scene"
-  >
-    <a-assets>
-      <a-asset-item id="modelo-3d" src="./modelos/Correctshark002.glb"></a-asset-item>
-    </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+<div id="loading-screen">Cargando...</div>
 
-    <a-entity mindar-image-target="targetIndex: 0">
-      <a-gltf-model 
-        src="#modelo-3d" 
-        position="0 0 0" 
-        scale="0.2 0.2 0.2">
-      </a-gltf-model>
-    </a-entity>
-  </a-scene>
+<!-- Marca de agua -->
+<div id="watermark">
+  <img src="./logo.png" alt="TuMarca Logo">
+  Powered by TuMarca
+</div>
 
-  <!-- Pantalla completa y redimensionamiento -->
-  <script>
-    window.addEventListener("load", () => {
-      const scene = document.querySelector("a-scene");
-      if (scene.hasLoaded) {
-        resizeScene();
-      } else {
-        scene.addEventListener("loaded", resizeScene);
-      }
+<a-scene
+  id="ar-scene"
+  mindar-image="imageTargetSrc: targets.mind;"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: true"
+  color-space="sRGB"
+  renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true; alpha: true"
+  video="playsinline: true;"
+  visible="false"
+>
+  <a-assets>
+    <a-asset-item id="modelo-3d" src="./modelos/Correctshark002.glb"></a-asset-item>
+  </a-assets>
 
-      function resizeScene() {
-        scene.style.width = window.innerWidth + "px";
-        scene.style.height = window.innerHeight + "px";
-        scene.canvas?.setAttribute("width", window.innerWidth);
-        scene.canvas?.setAttribute("height", window.innerHeight);
-      }
+  <!-- Cámara: con cursor para PC y gesture detector para móvil -->
+  <a-camera position="0 0 0" look-controls="enabled: false" gesture-detector>
+    <a-entity cursor="rayOrigin: mouse" raycaster="objects: .interactable;" super-hands></a-entity>
+  </a-camera>
 
-      window.addEventListener("resize", resizeScene);
-    });
-  </script>
+  <!-- Target detectado -->
+  <a-entity mindar-image-target="targetIndex: 0">
+
+    <!-- Modelo 3D Tiburón -->
+    <a-gltf-model 
+      src="#modelo-3d" 
+      position="0 0 -0.5" 
+      scale="0.2 0.2 0.2" 
+      class="interactable"
+      grabbable
+      stretchable
+      draggable
+      rotatable
+    ></a-gltf-model>
+
+    <!-- Texto flotante encima del modelo -->
+    <a-entity 
+      position="0 0.4 0"
+      text="value: 🦈 Tiburón\nDepredador marino de gran tamaño y poderoso instinto.; 
+            align: center; 
+            width: 2; 
+            color: #00FFFF;"
+    ></a-entity>
+
+  </a-entity>
+</a-scene>
+
+<script>
+  const scene = document.getElementById('ar-scene');
+  scene.addEventListener('loaded', () => {
+    document.getElementById('loading-screen').style.display = 'none';
+    scene.setAttribute('visible', true);
+  });
+</script>
+
 </body>
 </html>
