@@ -109,35 +109,33 @@
   </a-camera>
 
   <a-entity mindar-image-target="targetIndex: 0">
-    <!-- 🎬 Modelo con animación activa -->
-    <a-gltf-model
-      id="sharkModel"
-      src="#modelo-3d"
-      position="0 -0.2 0" <!-- Ajusta la posición Y si es necesario al escalar -->
-      scale="6 6 6"     <!-- <---- AUMENTAMOS LA ESCALA AQUÍ -->
-      class="interactable"
-      animation-mixer
-      grabbable
-      stretchable
-      draggable
-      rotatable
-    ></a-gltf-model>
-
-    <a-entity
-      position="0 0.5 0" <!-- Ajusta la posición del texto si el modelo es más grande -->
-      text="value: 🦈 Tiburón\nDepredador marino de gran tamaño y poderoso instinto.;
-            align: center;
-            width: 2.5; <!-- Puedes ajustar el ancho del texto también -->
-            color: #00FFFF;
-            shader: msdf;
-            font: https://raw.githubusercontent.com/etiennepinchon/aframe-fonts/master/fonts/opensans/OpenSans-Regular.json;"
-    ></a-entity>
+    <!-- Contenedor para las transformaciones -->
+    <a-entity id="model-container" position="0 -0.2 0">
+      <!-- 🎬 Modelo con animación activa -->
+      <a-gltf-model
+        id="sharkModel"
+        src="#modelo-3d"
+        scale="6 6 6"
+        class="interactable"
+        animation-mixer
+        gesture-handler="minScale: 0.5; maxScale: 20"
+      ></a-gltf-model>
+    </a-entity>
   </a-entity>
 </a-scene>
 
 <script>
   const scene = document.getElementById('ar-scene');
   const loadingScreen = document.getElementById('loading-screen');
+  const modelContainer = document.getElementById('model-container');
+  const sharkModel = document.getElementById('sharkModel');
+
+  // Variables para control de gestos
+  let initialScale = { x: 6, y: 6, z: 6 };
+  let initialDistance = null;
+  let initialRotation = null;
+  let isRotating = false;
+  let isScaling = false;
 
   scene.addEventListener('loaded', () => {
     // La escena de A-Frame y sus assets están listos
@@ -145,28 +143,99 @@
   });
 
   scene.addEventListener('renderstart', () => {
-    // Esto se dispara cuando el bucle de renderizado de A-Frame comienza
-    // Y es un buen indicador de que MindAR también está listo o a punto de estarlo
-    // (después de que la cámara se inicialice)
     loadingScreen.style.display = 'none';
     scene.setAttribute('visible', true);
     console.log("AR Scene render started, hiding loading screen.");
   });
 
-  // Opcional: Escuchar eventos de MindAR para más control si es necesario
   scene.addEventListener('arReady', () => {
     console.log("MindAR is ready");
-    // Si quieres esperar a que MindAR esté completamente listo
-    // podrías mover el ocultar la pantalla de carga aquí,
-    // pero renderstart suele ser suficiente.
   });
 
   scene.addEventListener('arError', (event) => {
     console.error("MindAR Error:", event.detail);
     loadingScreen.innerHTML = "Error al iniciar AR. Asegúrate de que la cámara tiene permisos y el marcador es compatible.";
-    // No ocultar la pantalla de carga si hay un error
   });
 
+  // Eventos para rotación con un dedo
+  sharkModel.addEventListener('mousedown', startRotation);
+  sharkModel.addEventListener('touchstart', startRotation);
+  
+  sharkModel.addEventListener('mousemove', handleRotation);
+  sharkModel.addEventListener('touchmove', handleRotation);
+  
+  sharkModel.addEventListener('mouseup', stopRotation);
+  sharkModel.addEventListener('touchend', stopRotation);
+
+  // Eventos para zoom con dos dedos (pinch)
+  scene.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      isScaling = true;
+      initialDistance = getDistance(e.touches[0], e.touches[1]);
+      initialScale = sharkModel.getAttribute('scale');
+    }
+  });
+
+  scene.addEventListener('touchmove', (e) => {
+    if (isScaling && e.touches.length === 2) {
+      const currentDistance = getDistance(e.touches[0], e.touches[1]);
+      const scaleFactor = currentDistance / initialDistance;
+      
+      const newScale = {
+        x: initialScale.x * scaleFactor,
+        y: initialScale.y * scaleFactor,
+        z: initialScale.z * scaleFactor
+      };
+      
+      // Limitar el zoom mínimo y máximo
+      newScale.x = Math.max(0.5, Math.min(20, newScale.x));
+      newScale.y = Math.max(0.5, Math.min(20, newScale.y));
+      newScale.z = Math.max(0.5, Math.min(20, newScale.z));
+      
+      sharkModel.setAttribute('scale', newScale);
+    }
+  });
+
+  scene.addEventListener('touchend', () => {
+    isScaling = false;
+  });
+
+  function startRotation(e) {
+    if (e.touches && e.touches.length > 1) return; // No rotar si son dos dedos (zoom)
+    isRotating = true;
+    const rotation = modelContainer.getAttribute('rotation') || { x: 0, y: 0, z: 0 };
+    initialRotation = {
+      y: rotation.y,
+      clientX: e.clientX || e.touches[0].clientX
+    };
+    e.preventDefault();
+  }
+
+  function handleRotation(e) {
+    if (!isRotating) return;
+    const clientX = e.clientX || (e.touches[0] && e.touches[0].clientX);
+    if (!clientX) return;
+    
+    const deltaX = clientX - initialRotation.clientX;
+    const rotationY = initialRotation.y + deltaX * 0.5;
+    
+    modelContainer.setAttribute('rotation', {
+      x: 0,
+      y: rotationY,
+      z: 0
+    });
+    e.preventDefault();
+  }
+
+  function stopRotation() {
+    isRotating = false;
+  }
+
+  function getDistance(touch1, touch2) {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
 </script>
 
 </body>
