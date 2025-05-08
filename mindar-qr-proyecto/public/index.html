@@ -4,13 +4,10 @@
   <meta charset="UTF-8">
   <title>AR BY-RNCORP</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-  <!-- Librerías A-Frame, MindAR, Super-Hands y Gesture Detector -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-super-hands-component@4.0.5/dist/aframe-super-hands-component.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-gesture-detector@3.3.0/dist/aframe-gesture-detector.min.js"></script>
-  <!-- 🔄 Reproductor de animaciones para GLTF -->
   <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
 
   <style>
@@ -20,7 +17,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: rgba(255, 255, 255, 0); /* Fondo transparente para AR */
+      background: rgba(255, 255, 255, 0);
     }
 
     #ar-scene {
@@ -38,7 +35,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgb(0,0,0);
+      background: black;
       color: white;
       display: flex;
       justify-content: center;
@@ -46,6 +43,23 @@
       z-index: 1000;
       font-family: sans-serif;
       font-size: 1.5em;
+    }
+
+    #reference-image {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 999;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 12px;
+    }
+
+    #reference-image img {
+      max-width: 80vw;
+      max-height: 50vh;
+      border-radius: 10px;
     }
 
     #watermark {
@@ -74,6 +88,11 @@
 
 <div id="loading-screen">Cargando...</div>
 
+<!-- 📷 Imagen de referencia para escanear -->
+<div id="reference-image">
+  <img src="reference.png" alt="Escanea esta imagen">
+</div>
+
 <div id="watermark">
   <img src="logo.png" alt="">
   Powered by RNcorp
@@ -97,7 +116,6 @@
   </a-assets>
 
   <a-camera position="0 0 0" look-controls="enabled: false" gesture-detector>
-    <!-- super-hands necesita que el cursor/raycaster esté en la cámara o en un controlador -->
     <a-entity 
         cursor="rayOrigin: mouse; fuse: false;" 
         raycaster="objects: .interactable; far:50;"
@@ -109,9 +127,7 @@
   </a-camera>
 
   <a-entity mindar-image-target="targetIndex: 0">
-    <!-- Contenedor para las transformaciones -->
     <a-entity id="model-container" position="0 -0.2 0">
-      <!-- 🎬 Modelo con animación activa -->
       <a-gltf-model
         id="sharkModel"
         src="#modelo-3d"
@@ -127,25 +143,20 @@
 <script>
   const scene = document.getElementById('ar-scene');
   const loadingScreen = document.getElementById('loading-screen');
+  const referenceImage = document.getElementById('reference-image');
   const modelContainer = document.getElementById('model-container');
   const sharkModel = document.getElementById('sharkModel');
 
-  // Variables para control de gestos
   let initialScale = { x: 6, y: 6, z: 6 };
   let initialDistance = null;
   let initialRotation = null;
   let isRotating = false;
   let isScaling = false;
 
-  scene.addEventListener('loaded', () => {
-    // La escena de A-Frame y sus assets están listos
-    // No ocultamos la pantalla de carga aquí todavía
-  });
-
   scene.addEventListener('renderstart', () => {
     loadingScreen.style.display = 'none';
+    referenceImage.style.display = 'none'; // 👈 Oculta imagen de referencia cuando se inicia
     scene.setAttribute('visible', true);
-    console.log("AR Scene render started, hiding loading screen.");
   });
 
   scene.addEventListener('arReady', () => {
@@ -154,20 +165,16 @@
 
   scene.addEventListener('arError', (event) => {
     console.error("MindAR Error:", event.detail);
-    loadingScreen.innerHTML = "Error al iniciar AR. Asegúrate de que la cámara tiene permisos y el marcador es compatible.";
+    loadingScreen.innerHTML = "Error al iniciar AR. Verifica permisos de cámara.";
   });
 
-  // Eventos para rotación con un dedo
   sharkModel.addEventListener('mousedown', startRotation);
   sharkModel.addEventListener('touchstart', startRotation);
-  
   sharkModel.addEventListener('mousemove', handleRotation);
   sharkModel.addEventListener('touchmove', handleRotation);
-  
   sharkModel.addEventListener('mouseup', stopRotation);
   sharkModel.addEventListener('touchend', stopRotation);
 
-  // Eventos para zoom con dos dedos (pinch)
   scene.addEventListener('touchstart', (e) => {
     if (e.touches.length === 2) {
       isScaling = true;
@@ -180,18 +187,14 @@
     if (isScaling && e.touches.length === 2) {
       const currentDistance = getDistance(e.touches[0], e.touches[1]);
       const scaleFactor = currentDistance / initialDistance;
-      
       const newScale = {
         x: initialScale.x * scaleFactor,
         y: initialScale.y * scaleFactor,
         z: initialScale.z * scaleFactor
       };
-      
-      // Limitar el zoom mínimo y máximo
       newScale.x = Math.max(0.5, Math.min(20, newScale.x));
       newScale.y = Math.max(0.5, Math.min(20, newScale.y));
       newScale.z = Math.max(0.5, Math.min(20, newScale.z));
-      
       sharkModel.setAttribute('scale', newScale);
     }
   });
@@ -201,7 +204,7 @@
   });
 
   function startRotation(e) {
-    if (e.touches && e.touches.length > 1) return; // No rotar si son dos dedos (zoom)
+    if (e.touches && e.touches.length > 1) return;
     isRotating = true;
     const rotation = modelContainer.getAttribute('rotation') || { x: 0, y: 0, z: 0 };
     initialRotation = {
@@ -215,15 +218,9 @@
     if (!isRotating) return;
     const clientX = e.clientX || (e.touches[0] && e.touches[0].clientX);
     if (!clientX) return;
-    
     const deltaX = clientX - initialRotation.clientX;
     const rotationY = initialRotation.y + deltaX * 0.5;
-    
-    modelContainer.setAttribute('rotation', {
-      x: 0,
-      y: rotationY,
-      z: 0
-    });
+    modelContainer.setAttribute('rotation', { x: 0, y: rotationY, z: 0 });
     e.preventDefault();
   }
 
