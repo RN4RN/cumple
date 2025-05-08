@@ -10,6 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-super-hands-component@4.0.5/dist/aframe-super-hands-component.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-gesture-detector@3.3.0/dist/aframe-gesture-detector.min.js"></script>
+  <!-- 🔄 Reproductor de animaciones para GLTF -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
 
   <style>
     html, body {
@@ -46,7 +48,6 @@
       font-size: 1.5em;
     }
 
-    /* Marca de agua con logo + texto */
     #watermark {
       position: fixed;
       bottom: 10px;
@@ -71,16 +72,13 @@
 </head>
 <body>
 
-<!-- Pantalla de carga -->
 <div id="loading-screen">Cargando...</div>
 
-<!-- Marca de agua -->
 <div id="watermark">
   <img src="logo.png" alt="TuMarca Logo">
   Powered by RNcorp
 </div>
 
-<!-- Escena AR -->
 <a-scene
   id="ar-scene"
   mindar-image="imageTargetSrc: targets.mind;"
@@ -94,27 +92,24 @@
     <a-asset-item id="modelo-3d" src="./modelos/ut.glb"></a-asset-item>
   </a-assets>
 
-  <!-- Cámara con soporte para gestos y ratón -->
   <a-camera position="0 0 0" look-controls="enabled: false" gesture-detector>
     <a-entity cursor="rayOrigin: mouse" raycaster="objects: .interactable;" super-hands></a-entity>
   </a-camera>
 
-  <!-- Target detectado -->
   <a-entity mindar-image-target="targetIndex: 0">
-
-    <!-- Modelo 3D centrado -->
+    <!-- 🎬 Modelo con animación activa -->
     <a-gltf-model 
       src="#modelo-3d" 
       position="0 0 0" 
       scale="0.1 0.1 0.1" 
       class="interactable"
+      animation-mixer
       grabbable
       stretchable
       draggable
       rotatable
     ></a-gltf-model>
 
-    <!-- Texto descriptivo -->
     <a-entity 
       position="0 0.3 0"
       text="value: 🦈 Tiburón\nDepredador marino de gran tamaño y poderoso instinto.; 
@@ -122,11 +117,9 @@
             width: 2; 
             color: #00FFFF;"
     ></a-entity>
-
   </a-entity>
 </a-scene>
 
-<!-- Script para ocultar la pantalla de carga -->
 <script>
   const scene = document.getElementById('ar-scene');
   scene.addEventListener('loaded', () => {
