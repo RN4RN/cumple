@@ -88,10 +88,7 @@
 
 <div id="loading-screen">Cargando...</div>
 
-<!-- 📷 Imagen de referencia para escanear -->
-<div id="reference-image">
-  <img src="reference.png" alt="Escanea esta imagen">
-</div>
+
 
 <div id="watermark">
   <img src="logo.png" alt="">
