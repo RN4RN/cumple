@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>AR BY-RNCORP</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-super-hands-component@4.0.5/dist/aframe-super-hands-component.min.js"></script>
@@ -12,68 +12,75 @@
 
   <style>
     html, body {
-      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: rgba(255, 255, 255, 0);
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0);
     }
 
     #ar-scene {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
     #loading-screen {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: black; color: white;
-      display: flex; justify-content: center; align-items: center;
-      z-index: 1000; font-family: sans-serif; font-size: 1.5em;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      font-family: sans-serif;
+      font-size: 1.5em;
     }
 
     #reference-image {
-      position: fixed; top: 50%; left: 50%;
+      position: fixed;
+      top: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
       z-index: 999;
       background: rgba(0, 0, 0, 0.7);
-      padding: 10px; border-radius: 12px;
+      padding: 10px;
+      border-radius: 12px;
     }
 
     #reference-image img {
-      max-width: 80vw; max-height: 50vh; border-radius: 10px;
+      max-width: 80vw;
+      max-height: 50vh;
+      border-radius: 10px;
     }
 
     #watermark {
-      position: fixed; bottom: 10px; right: 10px;
-      display: flex; align-items: center; gap: 8px;
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       background: rgba(0, 0, 0, 0.4);
-      padding: 6px 10px; border-radius: 10px;
-      z-index: 9999; color: white; font-family: sans-serif; font-size: 0.9em;
+      padding: 6px 10px;
+      border-radius: 10px;
+      z-index: 9999;
+      color: white;
+      font-family: sans-serif;
+      font-size: 0.9em;
     }
 
     #watermark img {
-      height: 30px; opacity: 0.7;
-    }
-
-    /* Descripción con botón cerrar */
-    #descripcion {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      width: 300px;
-      background: rgba(0,0,0,0.8);
-      color: white;
-      padding: 15px;
-      border-radius: 10px;
-      font-family: sans-serif;
-      font-size: 1em;
-      z-index: 10000;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-
-    #descripcion .cerrar {
-      position: absolute;
-      top: 5px;
-      right: 10px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 1.2em;
-      user-select: none;
+      height: 30px;
+      opacity: 0.7;
     }
   </style>
 </head>
@@ -81,27 +88,23 @@
 
 <div id="loading-screen">Cargando...</div>
 
-<!-- Imagen de referencia para escanear -->
+<!-- 📷 Imagen de referencia para escanear -->
 <div id="reference-image">
-  <img src="reference.png" alt="Escanea esta imagen" />
+  <img src="reference.png" alt="Escanea esta imagen">
 </div>
 
 <div id="watermark">
-  <img src="logo.png" alt="" />
+  <img src="logo.png" alt="">
   Powered by RNcorp
-</div>
-
-<!-- Descripción con botón cerrar -->
-<div id="descripcion">
-  <div class="cerrar" title="Cerrar descripción">✕</div>
-  <p>
-    Esta es la descripción del modelo 3D. Aquí puedes poner detalles interesantes o instrucciones para el usuario.
-  </p>
 </div>
 
 <a-scene
   id="ar-scene"
-  mindar-image="imageTargetSrc: targets1.mind; filterMinCF:0.001; filterBeta:0.01; missTolerance: 5; warmupTolerance: 5;"
+  mindar-image="imageTargetSrc: targets1.mind;
+                 filterMinCF:0.001; 
+                 filterBeta:0.01;
+                 missTolerance: 5;
+                 warmupTolerance: 5;"
   vr-mode-ui="enabled: false"
   device-orientation-permission-ui="enabled: true"
   renderer="antialias: true; alpha: true; physicallyCorrectLights: true; colorManagement: true;"
@@ -109,14 +112,17 @@
   visible="false"
 >
   <a-assets>
-    <a-asset-item id="modelo-3d" src="./modelos/gpt.glb"></a-asset-item>
+    <a-asset-item id="modelo-3d" src="./modelos/ut.glb"></a-asset-item>
   </a-assets>
 
   <a-camera position="0 0 0" look-controls="enabled: false" gesture-detector>
     <a-entity 
-      cursor="rayOrigin: mouse; fuse: false;" 
-      raycaster="objects: .interactable; far:50;"
-      super-hands="colliderEvent: raycaster-intersection; colliderEventProperty: els; colliderEndEvent:raycaster-intersection-cleared; colliderEndEventProperty: clearedEls;"
+        cursor="rayOrigin: mouse; fuse: false;" 
+        raycaster="objects: .interactable; far:50;"
+        super-hands="colliderEvent: raycaster-intersection;
+                     colliderEventProperty: els;
+                     colliderEndEvent:raycaster-intersection-cleared;
+                     colliderEndEventProperty: clearedEls;"
     ></a-entity>
   </a-camera>
 
@@ -140,8 +146,6 @@
   const referenceImage = document.getElementById('reference-image');
   const modelContainer = document.getElementById('model-container');
   const sharkModel = document.getElementById('sharkModel');
-  const descripcion = document.getElementById('descripcion');
-  const cerrarBtn = descripcion.querySelector('.cerrar');
 
   let initialScale = { x: 6, y: 6, z: 6 };
   let initialDistance = null;
@@ -149,14 +153,9 @@
   let isRotating = false;
   let isScaling = false;
 
-  // Cerrar descripción
-  cerrarBtn.addEventListener('click', () => {
-    descripcion.style.display = 'none';
-  });
-
   scene.addEventListener('renderstart', () => {
     loadingScreen.style.display = 'none';
-    referenceImage.style.display = 'none'; // Oculta imagen de referencia cuando se inicia
+    referenceImage.style.display = 'none'; // 👈 Oculta imagen de referencia cuando se inicia
     scene.setAttribute('visible', true);
   });
 
@@ -169,7 +168,6 @@
     loadingScreen.innerHTML = "Error al iniciar AR. Verifica permisos de cámara.";
   });
 
-  // Eventos de rotación
   sharkModel.addEventListener('mousedown', startRotation);
   sharkModel.addEventListener('touchstart', startRotation);
   sharkModel.addEventListener('mousemove', handleRotation);
@@ -177,7 +175,6 @@
   sharkModel.addEventListener('mouseup', stopRotation);
   sharkModel.addEventListener('touchend', stopRotation);
 
-  // Eventos de escalado con multitouch
   scene.addEventListener('touchstart', (e) => {
     if (e.touches.length === 2) {
       isScaling = true;
