@@ -112,7 +112,7 @@
   visible="false"
 >
   <a-assets>
-    <a-asset-item id="modelo-3d" src="./modelos/gpt.glb"></a-asset-item>
+    <a-asset-item id="modelo-3d" src="./modelos/ut.glb"></a-asset-item>
   </a-assets>
 
   <a-camera position="0 0 0" look-controls="enabled: false" gesture-detector>
