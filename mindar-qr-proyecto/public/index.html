@@ -17,7 +17,7 @@
       margin: 0; padding: 0;
       width: 100%; height: 100%;
       overflow: hidden;
-      background: transparent;
+      background: transparent; /* Es mejor que la escena AR controle el fondo */
     }
     #ar-scene {
       position: fixed;
@@ -34,12 +34,13 @@
       background: black; color: white;
       display: flex; justify-content: center; align-items: center;
       z-index: 1000; font-family: sans-serif; font-size: 1.5em;
+      text-align: center; /* Para centrar el texto si es largo */
     }
     #reference-image {
       position: fixed; top: 50%; left: 50%;
       transform: translate(-50%, -50%); z-index: 999;
-      background: rgba(0,0,0,0.7); padding: 10px; border-radius: 12px;
-      display: flex; /* Para que se muestre inicialmente */
+      background: rgba(0,0,0,0.7); padding: 15px; border-radius: 12px;
+      /* display: none; MindAR lo gestionará */
       flex-direction: column;
       align-items: center;
       text-align: center;
@@ -47,7 +48,7 @@
       font-family: sans-serif;
     }
     #reference-image img {
-      max-width: 80vw; max-height: 50vh; border-radius: 10px; margin-top: 5px;
+      max-width: 80vw; max-height: 50vh; border-radius: 10px; margin-top: 10px;
     }
     #watermark {
       position: fixed; bottom: 10px; right: 10px;
@@ -58,8 +59,9 @@
     }
     #watermark img { height: 30px; opacity: 0.7; }
     #infoBox {
-      position: fixed; top: 20px; left: 20px;
-      width: calc(100% - 40px); max-width: 300px; /* Adaptable */
+      position: fixed; top: 20px; left: 50%;
+      transform: translateX(-50%); /* Centrar horizontalmente */
+      width: calc(100% - 40px); max-width: 350px; /* Adaptable */
       background: rgba(0,0,0,0.85);
       color: white; padding: 15px; border-radius: 10px;
       z-index: 10000; display: none; font-family: sans-serif;
@@ -74,17 +76,21 @@
     }
     #closeBtn {
       float: right; background: none; border: none;
-      color: white; font-size: 1.2em; cursor: pointer;
-      padding: 0; margin: 0; line-height: 1;
+      color: white; font-size: 1.5em; cursor: pointer; /* Más grande para táctil */
+      padding: 0 5px; margin: -5px -5px 0 0; line-height: 1;
     }
   </style>
 </head>
 <body>
-  <div id="loading-screen">Cargando...</div>
-  <div id="reference-image">
-    Escanea esta imagen
-    <img src="reference.png" alt="Imagen de referencia">
+  <!-- MindAR controla esto con uiLoading -->
+  <div id="loading-screen">Cargando Experiencia AR...<br>Por favor, espera y otorga permisos de cámara si se solicitan.</div>
+
+  <!-- MindAR controla esto con uiScanning -->
+  <div id="reference-image" style="display: none;"> <!-- Inicialmente oculto, MindAR lo muestra -->
+    Apunta tu cámara a la imagen de referencia
+    <img src="references.png" alt="Imagen de referencia para escanear">
   </div>
+
   <div id="watermark">
     <img src="logo.png" alt="Logo">
     Powered by RNcorp
@@ -93,10 +99,12 @@
   <!-- A-Frame AR Scene -->
   <a-scene
     id="ar-scene"
-    mindar-image="imageTargetSrc: targets1.mind; filterMinCF:0.001; filterBeta:0.01; missTolerance:5; warmupTolerance:5; uiScanning: #reference-image; uiLoading: #loading-screen;"
+    mindar-image="imageTargetSrc: targets.mind; filterMinCF:0.001; filterBeta:0.01; missTolerance:5; warmupTolerance:5; uiScanning: #reference-image; uiLoading: #loading-screen;"
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: true"
+    device-orientation-permission-ui="enabled: false" <!-- MindAR solicita permiso de cámara, esto es para orientación -->
     renderer="antialias: true; alpha: true; physicallyCorrectLights: true; colorManagement: true;"
+    color-space="sRGB"
+    event-smoothing="true"
     video="playsinline: true;"
     embedded
     gesture-detector <!-- IMPORTANTE PARA gesture-handler -->
@@ -104,14 +112,14 @@
     <a-assets>
       <a-asset-item id="modelo-3d" src="./modelos/gpt.glb"></a-asset-item>
       <!-- Asegúrate que estas imágenes existan o usa URLs completas -->
-      <img id="tronco0-img" src="https://i.imgur.com/ejRXPf7.jpg">
-      <img id="tronco1-img" src="https://i.imgur.com/MDcNe39.jpg">
-      <img id="silla-img" src="silla.png"> <!-- Si es local, asegúrate que esté en la ruta correcta -->
-      <img id="rama-img" src="https://i.imgur.com/GV5Wv2D.jpg">
+      <img id="tronco0-img" src="https://i.imgur.com/ejRXPf7.jpg" crossorigin="anonymous">
+      <img id="tronco1-img" src="https://i.imgur.com/MDcNe39.jpg" crossorigin="anonymous">
+      <img id="silla-img" src="silla.png" crossorigin="anonymous"> <!-- Si es local, asegúrate que esté en la ruta correcta -->
+      <img id="rama-img" src="https://i.imgur.com/GV5Wv2D.jpg" crossorigin="anonymous">
     </a-assets>
 
     <!-- Cámara AR -->
-    <a-camera position="0 0 0" look-controls="enabled: false">
+    <a-camera position="0 0 0" look-controls="enabled: false" fov="80">
       <a-entity
         cursor="rayOrigin: mouse; fuse: false;"
         raycaster="objects: .interactable; far:50;"
@@ -121,16 +129,16 @@
 
     <!-- Target (index 0) -->
     <a-entity mindar-image-target="targetIndex: 0">
-      <a-entity id="model-container" position="0 -0.2 0"> <!-- Puedes ajustar la posición Y si el modelo aparece flotando o hundido -->
+      <a-entity id="model-container" position="0 -0.2 0">
         <a-gltf-model
           id="sharkModel"
-          class="interactable" <!-- Importante para que super-hands lo detecte para clicks -->
+          class="interactable"
           src="#modelo-3d"
           scale="6 6 6"
-          position="0 0 0" <!-- Posición relativa al model-container -->
+          position="0 0 0"
           rotation="0 0 0"
           animation-mixer
-          gesture-handler="minScale: 3; maxScale: 15; enabled: true;" <!-- AÑADIDO Y CONFIGURADO -->
+          gesture-handler="minScale: 3; maxScale: 15; enabled: true;"
         ></a-gltf-model>
       </a-entity>
     </a-entity>
@@ -138,7 +146,7 @@
 
   <!-- InfoBox para descripción -->
   <div id="infoBox">
-    <button id="closeBtn">✕</button>
+    <button id="closeBtn" aria-label="Cerrar información">✕</button>
     <img id="infoImage" src="" alt="Parte del modelo">
     <p id="infoText"></p>
   </div>
@@ -150,99 +158,129 @@
       const infoImage = document.getElementById('infoImage');
       const infoText = document.getElementById('infoText');
       const closeBtn = document.getElementById('closeBtn');
-      const sharkModelEl = document.querySelector('#sharkModel'); // Obtener la entidad del modelo
+      const sharkModelEl = document.querySelector('#sharkModel');
 
-      // Descripciones (asegúrate que los nombres coincidan con los nombres de las mallas en tu GLB)
-      // Y que las IDs de las imágenes en a-assets coincidan con los `imgSrcId`
+      // Asegúrate de que los nombres de malla ("troncos_primitivos0", etc.)
+      // coincidan EXACTAMENTE con los nombres dentro de tu archivo gpt.glb
       const descriptions = {
         "troncos_primitivos0": {
           text: "Este es el tronco principal número 0, que soporta la estructura base.",
-          imgSrcId: "tronco0-img" // Usar el ID del asset
+          imgSrcId: "tronco0-img"
         },
         "troncos_primitivos1": {
           text: "Este es el tronco principal número 1, que conecta con la base y ramas secundarias.",
           imgSrcId: "tronco1-img"
         },
-        "silla": { // Asegúrate que tu modelo tenga una malla llamada "silla"
+        "silla": {
           text: "La base sólida sobre la que se asienta todo el modelo.",
           imgSrcId: "silla-img"
         },
-        "rama_izquierda": { // Asegúrate que tu modelo tenga una malla llamada "rama_izquierda"
+        "rama_izquierda": {
           text: "Rama izquierda del modelo, que simula el crecimiento natural.",
           imgSrcId: "rama-img"
         }
-        // … añade más partes si es necesario
+        // ... añade más partes si es necesario
       };
 
-      // MindAR maneja la pantalla de carga y escaneo con uiLoading y uiScanning
-      // Por lo que el event listener 'renderstart' para ocultarlos ya no es estrictamente necesario
-      // si usas esas propiedades de mindar-image. Si no, mantenlo.
+      // No es necesario manejar manualmente loading/reference screens si uiLoading/uiScanning están bien configurados.
       // sceneEl.addEventListener('renderstart', () => {
-      //   document.getElementById('loading-screen').style.display = 'none';
-      //   document.getElementById('reference-image').style.display = 'none';
+      //   console.log("AR Scene renderstart");
       // });
 
-      // Event listener para clicks en el modelo (gestionado por super-hands y raycaster)
-      sharkModelEl.addEventListener('click', (event) => {
-        console.log("Click event on model:", event.detail);
-        const intersection = event.detail.intersection; // Información de la intersección del rayo
 
-        if (intersection && intersection.object) {
-          let clickedObjectName = intersection.object.name;
-          let objectToCheck = intersection.object;
+      if (sharkModelEl) {
+        sharkModelEl.addEventListener('model-loaded', () => {
+          console.log("Modelo 3D cargado completamente.");
+        });
 
-          // A veces, el nombre relevante está en un objeto padre en la jerarquía del GLTF
-          // Iteramos hacia arriba hasta encontrar un nombre con descripción o llegar a la raíz del modelo
-          while (objectToCheck && objectToCheck !== sharkModelEl.object3D) { // No ir más allá del modelo
-            if (descriptions[objectToCheck.name]) {
-              clickedObjectName = objectToCheck.name;
-              break;
+        sharkModelEl.addEventListener('click', (event) => {
+          console.log("Click detectado en el modelo:", event.detail);
+          const intersection = event.detail.intersection;
+
+          if (intersection && intersection.object) {
+            let clickedObject = intersection.object;
+            let partName = null;
+
+            // Iterar hacia arriba en la jerarquía del objeto clickeado
+            // para encontrar un nombre de malla que tengamos en 'descriptions'
+            // A veces, el 'name' está en un objeto padre si el GLTF está anidado.
+            while (clickedObject && clickedObject.isObject3D) {
+              console.log("Inspeccionando objeto:", clickedObject.name, clickedObject);
+              if (clickedObject.name && descriptions[clickedObject.name]) {
+                partName = clickedObject.name;
+                break;
+              }
+              if (clickedObject === sharkModelEl.object3D) { // No subir más allá del modelo mismo
+                  break;
+              }
+              clickedObject = clickedObject.parent;
             }
-            objectToCheck = objectToCheck.parent;
-          }
+            
+            console.log("Nombre de la parte identificada:", partName);
+            const desc = descriptions[partName];
 
-          console.log("Clicked on mesh name:", clickedObjectName);
-          const desc = descriptions[clickedObjectName];
-
-          if (desc) {
-            const imgAsset = document.getElementById(desc.imgSrcId);
-            if (imgAsset) {
-                infoImage.src = imgAsset.src;
+            if (desc) {
+              const imgAsset = document.getElementById(desc.imgSrcId);
+              if (imgAsset) {
+                  infoImage.src = imgAsset.src;
+                  infoImage.alt = desc.text.substring(0, 30) + "..."; // Alt text descriptivo
+              } else {
+                  infoImage.src = ""; 
+                  infoImage.alt = "Imagen no disponible";
+                  console.warn("Asset de imagen no encontrado para ID:", desc.imgSrcId);
+              }
+              infoText.textContent = desc.text;
+              infoBox.style.display = 'block';
             } else {
-                infoImage.src = ""; // o una imagen por defecto
-                console.warn("Asset de imagen no encontrado:", desc.imgSrcId);
+              console.log("No se encontró descripción para la parte:", partName, "Objeto original:", intersection.object.name);
+              // Opcional: cerrar el infobox si se clickea en una parte sin descripción
+              // infoBox.style.display = 'none';
             }
-            infoText.textContent = desc.text;
-            infoBox.style.display = 'block';
           } else {
-            console.log("No description found for:", clickedObjectName);
-            // Opcional: cerrar el infobox si se clickea en una parte sin descripción
-            // infoBox.style.display = 'none';
+            console.log("Click en el modelo, pero sin intersección válida o sin objeto.");
           }
-        }
-      });
+        });
+      } else {
+        console.error("No se pudo encontrar el elemento #sharkModel. Asegúrate de que el ID es correcto y el modelo está en la escena.");
+      }
 
-      // Cerrar InfoBox
       closeBtn.addEventListener('click', () => {
         infoBox.style.display = 'none';
       });
-
-      // Pequeña corrección para el mensaje de la imagen de referencia
+      
+      // MindAR usualmente maneja bien los mensajes de 'uiScanning', pero si quieres asegurarte
+      // que el texto esté ahí desde el principio (aunque el div esté oculto)
       const referenceImageDiv = document.getElementById('reference-image');
-      if (referenceImageDiv.firstChild && referenceImageDiv.firstChild.nodeType === Node.TEXT_NODE) {
-        // Ya tiene texto, no hacer nada o modificarlo
-      } else if (!referenceImageDiv.querySelector('img')) {
-         // Si solo tiene imagen, agregar texto antes
-         const textNode = document.createTextNode("Escanea esta imagen ");
+      if (referenceImageDiv && !referenceImageDiv.textContent.trim().startsWith("Apunta tu cámara")) {
+         const textNode = document.createTextNode("Apunta tu cámara a la imagen de referencia ");
          referenceImageDiv.insertBefore(textNode, referenceImageDiv.firstChild);
       }
 
-      // Opcional: para asegurar que los gestos no interfieran con el scroll de la página (aunque en pantalla completa es menos problemático)
-      document.body.addEventListener('touchstart', function(e) {
-        if (e.touches.length > 1) { // Si hay más de un dedo (gesto)
-          // e.preventDefault(); // Descomentar con cuidado, puede bloquear otros eventos deseados
+      // Manejo de errores de MindAR (útil para depuración)
+      sceneEl.addEventListener('mindar-error', (error) => {
+        console.error("MindAR Error:", error.detail);
+        // Podrías mostrar un mensaje de error más amigable al usuario aquí
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.innerHTML = `Error al iniciar AR: ${error.detail.message || 'Error desconocido'}.<br>Asegúrate de tener la cámara habilitada y estar en un entorno seguro (HTTPS).`;
         }
-      }, { passive: false });
+      });
+
+      // El evento 'arReady' indica que MindAR está listo.
+      sceneEl.addEventListener('arReady', () => {
+        console.log("MindAR está listo (arReady). La cámara debería estar activa.");
+        // La pantalla de carga ya debería estar oculta por uiLoading.
+        // La pantalla de escaneo (reference-image) debería estar visible por uiScanning.
+      });
+       sceneEl.addEventListener('arError', (event) => {
+        console.error("MindAR arError event:", event.detail);
+        // Esto puede ser por no conceder permisos de cámara, etc.
+         const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen && loadingScreen.style.display !== 'none') { // Si aún se muestra la carga
+            loadingScreen.innerHTML = `Error de AR: ${event.detail.error || 'No se pudo acceder a la cámara.'}<br>Por favor, verifica los permisos de la cámara en tu navegador y recarga la página.`;
+        }
+      });
+
 
     });
   </script>
